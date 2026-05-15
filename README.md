@@ -14,13 +14,12 @@ Go to [supabase.com](https://supabase.com), create a new project.
 
 ### 2. Configure the Site URL
 
-In your Supabase project → **Authentication → URL Configuration**, set **Site URL** to:
+In your Supabase project → **Authentication → URL Configuration**:
 
-```
-http://localhost:3000
-```
+- **Site URL:** `https://familydrive.vercel.app`
+- **Redirect URLs:** add `https://familydrive.vercel.app/**`
 
-(Update to your production domain when you deploy.)
+For local development also add `http://localhost:3000/**` to Redirect URLs.
 
 This ensures invite emails contain the correct link that redirects to `/auth/confirm`.
 
