@@ -61,6 +61,11 @@ create policy "Authenticated users can read all profiles"
   to authenticated
   using (true);
 
+create policy "Users can insert own profile"
+  on public.users for insert
+  to authenticated
+  with check ((select auth.uid()) = id);
+
 create policy "Users can update own profile"
   on public.users for update
   to authenticated
