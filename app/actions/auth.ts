@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
@@ -48,8 +49,10 @@ export async function signUp(
   if (error) return { error: error.message }
   if (!data.user) return { error: 'Registrierung fehlgeschlagen.' }
 
-  // Create the family member profile
-  const { error: profileError } = await supabase.from('users').insert({
+  // Create the family member profile using the admin client (service role)
+  // so the insert succeeds regardless of session timing after signUp.
+  const admin = createAdminClient()
+  const { error: profileError } = await admin.from('users').insert({
     id: data.user.id,
     display_name: displayName,
     avatar_color: avatarColor,
