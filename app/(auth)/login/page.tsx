@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
+import Link from 'next/link'
 import { Car, Loader2 } from 'lucide-react'
 import { signIn } from '@/app/actions/auth'
 
@@ -75,8 +76,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-surface-400">
-          Kein öffentlicher Zugang — nur Familienmitglieder.
+        <p className="mt-5 text-center text-sm text-surface-400">
+          Neu hier?{' '}
+          <Link href="/signup" className="text-white hover:underline font-medium">
+            Konto erstellen
+          </Link>
         </p>
       </div>
     </div>

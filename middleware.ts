@@ -32,8 +32,9 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isLoginPage = pathname === '/login'
   // Allow the invite token-exchange route and password-setup page without auth
+  const isAuthPage = isLoginPage || pathname === '/signup'
   const isPublicRoute =
-    isLoginPage ||
+    isAuthPage ||
     pathname === '/set-password' ||
     pathname.startsWith('/api/auth/')
 
@@ -43,7 +44,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && isLoginPage) {
+  if (user && isAuthPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
