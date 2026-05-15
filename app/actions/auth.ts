@@ -5,6 +5,21 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
+// Known car owners: signing up with these emails auto-assigns parent role
+// and creates their car in the database.
+const CAR_OWNERS: Record<string, { carName: string; carColor: string; carImage: string }> = {
+  'nadja.meier@hodelundpartner.ch': {
+    carName: 'GR86',
+    carColor: '#cc2200',
+    carImage: '/cars/gr86.png',
+  },
+  'marco.meier@hodelundpartner.ch': {
+    carName: 'Nissan',
+    carColor: '#1a6bba',
+    carImage: '/cars/nissan.png',
+  },
+}
+
 export async function signIn(
   _prevState: { error: string } | null,
   formData: FormData
@@ -34,32 +49,58 @@ export async function signUp(
     return { error: 'Ungültiger Familien-Code.' }
   }
 
-  const email = formData.get('email') as string
+  const email = (formData.get('email') as string).toLowerCase().trim()
   const password = formData.get('password') as string
   const displayName = (formData.get('display_name') as string).trim()
   const avatarColor = formData.get('avatar_color') as string
-  const role = formData.get('role') as 'parent' | 'kid'
 
   if (!displayName) return { error: 'Bitte gib deinen Namen ein.' }
   if (password.length < 8) return { error: 'Passwort muss mindestens 8 Zeichen lang sein.' }
 
+  // Known owner emails are always parents, regardless of what the form says
+  const carOwnerConfig = CAR_OWNERS[email]
+  const role: 'parent' | 'kid' = carOwnerConfig
+    ? 'parent'
+    : (formData.get('role') as 'parent' | 'kid')
+
   const supabase = await createClient()
+  const admin = createAdminClient()
 
   const { data, error } = await supabase.auth.signUp({ email, password })
   if (error) return { error: error.message }
   if (!data.user) return { error: 'Registrierung fehlgeschlagen.' }
 
-  // Create the family member profile using the admin client (service role)
-  // so the insert succeeds regardless of session timing after signUp.
-  const admin = createAdminClient()
+  // Create profile via admin client (bypasses RLS — session isn't set yet after signUp)
   const { error: profileError } = await admin.from('users').insert({
     id: data.user.id,
     display_name: displayName,
     avatar_color: avatarColor,
     role,
   })
-
   if (profileError) return { error: profileError.message }
+
+  // If this is a known car owner, create or claim their car
+  if (carOwnerConfig) {
+    // Check if the car already exists (e.g. from seed.sql)
+    const { data: existingCar } = await admin
+      .from('cars')
+      .select('id, owner_id')
+      .eq('name', carOwnerConfig.carName)
+      .maybeSingle()
+
+    if (!existingCar) {
+      // First time setup — create the car
+      await admin.from('cars').insert({
+        name: carOwnerConfig.carName,
+        color: carOwnerConfig.carColor,
+        emoji: carOwnerConfig.carImage,
+        owner_id: data.user.id,
+      })
+    } else if (!existingCar.owner_id) {
+      // Car exists but has no owner yet — claim it
+      await admin.from('cars').update({ owner_id: data.user.id }).eq('id', existingCar.id)
+    }
+  }
 
   revalidatePath('/', 'layout')
   redirect('/dashboard')
