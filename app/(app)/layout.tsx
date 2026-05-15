@@ -19,7 +19,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .eq('id', user.id)
     .single()
 
-  if (!profile) redirect('/login')
+  if (!profile) {
+    // Sign out first — otherwise middleware redirects authenticated users
+    // back to /dashboard, causing an infinite loop.
+    await supabase.auth.signOut()
+    redirect('/login')
+  }
 
   const { count: pendingCount } = await supabase
     .from('reservations')
