@@ -93,7 +93,7 @@ export function NewReservationModal({
               </option>
               {cars.map((car) => (
                 <option key={car.id} value={car.id}>
-                  {car.emoji} {car.name}
+                  {car.emoji.startsWith('/') ? '🚗' : car.emoji} {car.name}
                 </option>
               ))}
             </select>

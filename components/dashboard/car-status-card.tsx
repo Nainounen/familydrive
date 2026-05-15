@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { CheckCircle, Clock, Car } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { NewReservationModal } from '@/components/calendar/new-reservation-modal'
@@ -40,11 +41,35 @@ const statusConfig = {
   },
 }
 
+function CarImage({ emoji, name, color }: { emoji: string; name: string; color: string }) {
+  if (emoji.startsWith('/')) {
+    return (
+      <div className="w-full h-28 relative mb-2">
+        <Image
+          src={emoji}
+          alt={name}
+          fill
+          className="object-contain drop-shadow-lg"
+          sizes="(max-width: 640px) 100vw, 50vw"
+        />
+      </div>
+    )
+  }
+  return (
+    <div
+      className="w-11 h-11 rounded-xl flex items-center justify-center text-xl"
+      style={{ backgroundColor: color + '22' }}
+    >
+      {emoji}
+    </div>
+  )
+}
+
 export function CarStatusCard({ carWithStatus, allCars, currentUser }: CarStatusCardProps) {
   const [showModal, setShowModal] = useState(false)
   const config = statusConfig[carWithStatus.liveStatus]
   const StatusIcon = config.icon
-
+  const hasImage = carWithStatus.emoji.startsWith('/')
   const relevantReservation =
     carWithStatus.activeReservation ?? carWithStatus.nextReservation
 
@@ -57,15 +82,24 @@ export function CarStatusCard({ carWithStatus, allCars, currentUser }: CarStatus
           borderColor: config.border,
         }}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center text-xl"
-              style={{ backgroundColor: carWithStatus.color + '22' }}
-            >
-              {carWithStatus.emoji}
-            </div>
+        {/* Car image (full-width) or emoji icon */}
+        <CarImage
+          emoji={carWithStatus.emoji}
+          name={carWithStatus.name}
+          color={carWithStatus.color}
+        />
+
+        {/* Name + status */}
+        <div className={`flex items-center justify-between ${hasImage ? 'mb-3' : 'mb-4'}`}>
+          <div className={hasImage ? '' : 'flex items-center gap-3'}>
+            {!hasImage && (
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-xl"
+                style={{ backgroundColor: carWithStatus.color + '22' }}
+              >
+                {carWithStatus.emoji}
+              </div>
+            )}
             <div>
               <h3 className="font-semibold text-white text-base">{carWithStatus.name}</h3>
               <div className="flex items-center gap-1.5 mt-0.5">
@@ -76,11 +110,16 @@ export function CarStatusCard({ carWithStatus, allCars, currentUser }: CarStatus
               </div>
             </div>
           </div>
+          {/* Accent stripe */}
+          <div
+            className="w-1 h-8 rounded-full opacity-60"
+            style={{ backgroundColor: carWithStatus.color }}
+          />
         </div>
 
         {/* Reservation info */}
         {relevantReservation && (
-          <div className="mb-4 flex items-center gap-2.5 bg-surface-800/60 rounded-xl px-3 py-2.5">
+          <div className="mb-3 flex items-center gap-2.5 bg-surface-800/60 rounded-xl px-3 py-2.5">
             {relevantReservation.user && (
               <Avatar
                 name={relevantReservation.user.display_name}

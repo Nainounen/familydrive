@@ -27,7 +27,8 @@ export function CalendarEvent({ reservation, topPercent, heightPercent }: Calend
       {!isShort && (
         <div className="flex flex-col h-full justify-start pt-0.5">
           <p className="text-white text-[10px] font-semibold leading-tight truncate">
-            {reservation.car?.emoji} {user?.display_name}
+            {reservation.car?.emoji.startsWith('/') ? '🚗' : reservation.car?.emoji}{' '}
+            {user?.display_name}
           </p>
           {heightPercent > 10 && (
             <p className="text-white/80 text-[9px] leading-tight truncate">

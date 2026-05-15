@@ -1,15 +1,8 @@
 -- FamilyDrive Seed Data
 --
 -- BEFORE RUNNING THIS FILE:
--- 1. Create 4 auth users in Supabase Dashboard → Authentication → Users → Add user
---    Use "Auto Confirm User" and set the passwords manually or via the CLI:
---
---    supabase auth admin create-user --email mama@family.local --password Family2024!
---    supabase auth admin create-user --email papa@family.local --password Family2024!
---    supabase auth admin create-user --email emma@family.local --password Family2024!
---    supabase auth admin create-user --email leon@family.local --password Family2024!
---
--- 2. Copy the UUIDs from the auth.users table and replace the placeholders below.
+-- 1. Invite 4 users via Supabase Dashboard → Authentication → Users → Invite user
+-- 2. Copy the UUIDs from the Users table and replace the placeholders below.
 -- 3. Run schema.sql first, then this file.
 
 -- ============================================================
@@ -21,8 +14,8 @@ declare
   uuid_papa uuid := 'REPLACE_WITH_PAPA_UUID';
   uuid_emma uuid := 'REPLACE_WITH_EMMA_UUID';
   uuid_leon uuid := 'REPLACE_WITH_LEON_UUID';
-  id_golf uuid := gen_random_uuid();
-  id_kombi uuid := gen_random_uuid();
+  id_nissan uuid := gen_random_uuid();
+  id_gr86   uuid := gen_random_uuid();
 begin
 
 -- ============================================================
@@ -36,46 +29,47 @@ insert into public.users (id, display_name, avatar_color, role) values
 
 -- ============================================================
 -- CARS
+-- The `emoji` column stores an image path when it starts with `/`.
 -- ============================================================
 insert into public.cars (id, name, color, emoji, owner_id) values
-  (id_golf,  'Golf',  '#3b82f6', '🚗', uuid_papa),
-  (id_kombi, 'Kombi', '#f97316', '🚙', uuid_mama);
+  (id_nissan, 'Nissan', '#1a6bba', '/cars/nissan.png', uuid_mama),
+  (id_gr86,   'GR86',   '#cc2200', '/cars/gr86.png',   uuid_papa);
 
 -- ============================================================
 -- SAMPLE RESERVATIONS
 -- ============================================================
 
--- Papa: approved booking tomorrow morning (Golf)
+-- Papa: approved booking tomorrow morning (GR86)
 insert into public.reservations (car_id, user_id, start_time, end_time, status, note) values
-  (id_golf, uuid_papa,
+  (id_gr86, uuid_papa,
    now() + interval '1 day 8 hours',
    now() + interval '1 day 11 hours',
    'approved', 'Einkaufen');
 
--- Emma: pending booking this weekend (Kombi)
+-- Emma: pending booking this weekend (Nissan)
 insert into public.reservations (car_id, user_id, start_time, end_time, status, note) values
-  (id_kombi, uuid_emma,
+  (id_nissan, uuid_emma,
    date_trunc('week', now()) + interval '5 days 14 hours',
    date_trunc('week', now()) + interval '5 days 18 hours',
    'pending', 'Kino mit Freunden');
 
--- Leon: pending booking this weekend (Golf)
+-- Leon: pending booking this weekend (GR86)
 insert into public.reservations (car_id, user_id, start_time, end_time, status, note) values
-  (id_golf, uuid_leon,
+  (id_gr86, uuid_leon,
    date_trunc('week', now()) + interval '5 days 10 hours',
    date_trunc('week', now()) + interval '5 days 13 hours',
-   'pending', 'Fussball Training');
+   'pending', 'Training');
 
--- Mama: completed booking yesterday (Kombi)
+-- Mama: completed booking yesterday (Nissan)
 insert into public.reservations (car_id, user_id, start_time, end_time, status, note) values
-  (id_kombi, uuid_mama,
+  (id_nissan, uuid_mama,
    now() - interval '1 day 3 hours',
    now() - interval '1 day 1 hour',
    'completed', null);
 
--- Papa: approved booking next week (Kombi)
+-- Papa: approved booking next week (Nissan)
 insert into public.reservations (car_id, user_id, start_time, end_time, status, note) values
-  (id_kombi, uuid_papa,
+  (id_nissan, uuid_papa,
    now() + interval '5 days 9 hours',
    now() + interval '5 days 12 hours',
    'approved', 'Arzttermin');
